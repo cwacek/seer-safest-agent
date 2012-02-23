@@ -1,0 +1,57 @@
+#!/usr/bin/env perl
+
+sub error_out($$&@){
+    my $err_code = shift;
+    my $func_name = shift;
+    my $callback = shift;
+    my @err_text = @_;
+
+    if ($err_code != 0){
+        print STDERR "Error: $func_name\n";
+        for my $info (@err_text){
+            chomp $info;
+            print STDERR "$info\n";
+        }
+        &$callback($err_code);
+    }   
+}
+
+
+my $temp_dir=shift;
+my $source_dir=shift;
+my $pkg_name= shift;
+my $arch= shift;
+
+sub error {
+    system("touch '$temp_dir/${pkg_name}.NOTSUPPORTED'");
+    exit -1 ;
+}
+
+if ( $arch eq "Linux-Ubuntu10.04-i686" ){
+
+    my @output;
+
+    @output = qx(sudo easy_install -q "$source_dir/${pkg_name}.egg");
+    error_out $?, "Easy Install: egg install failed.",\&error, @output;
+
+    system("touch '$temp_dir/${pkg_name}.INSTALLED'");
+
+    print "***** READ THIS *****\n";
+    print "\n";
+    print "The python module flufl.lock was successfully installed.\n";
+    print "There is an issue in the DETER support software load scripts\n";
+    print " where if this script returns successfully (and thus does not\n";
+    print " raise an error), DETER copies the '$temp_dir/${pkg_name}.INSTALLED'\n";
+    print " file to both '/usr/share/seer' and also to my seer module\n";
+    print " directory. In this case, that's '/users/cwacek/myseer'. \n";
+    print "\n";
+    print "Other systems in the process of building read '/users/cwacek/myseer'\n";
+    print " and assume that flufl-lock is already installed. They end up doing nothing.\n";
+    print "To get around this, we just return error. It throws an error, but things \n";
+    print " get installed.\n";
+
+
+    exit 1;
+} else {
+    error()
+}
