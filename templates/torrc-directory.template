@@ -1,0 +1,25 @@
+# Universal Options
+ControlPort 9500
+TestingTorNetwork 1
+DataDirectory /var/lib/tor
+Address $ip_address
+ShutdownWaitLength 1
+Log notice file /var/log/tor/log
+
+#Extra Options
+$extra_options
+
+
+# Direcroty and Relay Options
+ORPort 9001
+
+# Disable SOCKSG on Relays and Directories
+SocksPort 0
+
+# Directory Options 
+DirServer test 127.0.0.1:5000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+V3AuthoritativeDirectory 1
+V2AuthoritativeDirectory 1
+AuthoritativeDirectory 1
+DirPort 5000
+ContactInfo jjh@deterlab.net

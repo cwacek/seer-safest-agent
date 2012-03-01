@@ -1,0 +1,42 @@
+[Global]
+
+    # need the dot...
+	Name = ircserver.
+	Info = Yet another IRC Server running on Debian GNU/Linux
+	Ports = 6667
+    MotdPhrase =  Welcome to the tor test setup irc server
+    Listen = $ip_address
+
+	# Do NOT change this on Debian! The Initscript takes care of this file!
+	PidFile = /var/run/ngircd/ngircd.pid
+
+	# After <PingTimeout> seconds of inactivity the server will send a
+	# PING to the peer to test whether it is alive or not.
+	PingTimeout = 120
+
+	# If a client fails to answer a PING with a PONG within <PongTimeout>
+	# seconds, it will be disconnected by the server.
+	PongTimeout = 20
+
+	# The server tries every <ConnectRetry> seconds to establish a link
+	# to not yet (or no longer) connected servers.
+	ConnectRetry = 60
+
+	# Should IRC Operators be allowed to use the MODE command even if
+	# they are not(!) channel-operators?
+	OperCanUseMode = yes
+
+	# Maximum number of simultaneous connection the server is allowed
+	# to accept (<=0: unlimited):
+	MaxConnections = 500
+
+	# Maximum number of simultaneous connections from a single IP address
+	# the server will accept (<=0: unlimited):
+	MaxConnectionsIP = 10
+
+	# Maximum number of channels a user can be member of (<=0: no limit):
+	MaxJoins = 10
+
+	# Maximum nick length
+
+	MaxNickLength = 64

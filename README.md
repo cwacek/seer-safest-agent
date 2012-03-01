@@ -2,7 +2,7 @@
 
 This is designed to be an agent that facilitates running a modified version of Tor on DETER.
 
-## Setting up an experiment ## 
+### Setting up an experiment ### 
 
 Configure the topology however you want. Include a standalone node called 'control'. If you are going to use ExperimentRunner, then you 
 should name relays 'router#', clients 'client#', and directory servers 'directory#', where

@@ -33,6 +33,10 @@ if ( $arch eq "Linux-Ubuntu10.04-i686" ){
 
     @output = qx(sudo easy_install -q "$source_dir/${pkg_name}.egg");
     error_out $?, "Easy Install: egg install failed.",\&error, @output;
+    @output = qx(sudo mkdir -p /opt/local/egg);
+    error_out $?, "Directory creation failed",\&error, @output;
+    @output = qx(sudo cp "$source_dir/${pkg_name}.egg" /opt/local/egg);
+    error_out $?, "Egg copy failed",\&error, @output;
 
     system("touch '$temp_dir/${pkg_name}.INSTALLED'");
 

@@ -1,0 +1,17 @@
+# Universal Options
+ControlPort 9500
+SafeLogging 0
+ReachableAddresses 10.0.0.0/8
+LearnCircuitBuildTimeout 0
+ReachableORAddresses 10.0.0.0/8
+TestingTorNetwork 1
+DataDirectory /var/lib/tor
+Address $ip_address
+ShutdownWaitLength 1
+Log notice file /var/log/tor/log
+
+$extra_options
+
+SocksPort 9050
+
+$directory_line

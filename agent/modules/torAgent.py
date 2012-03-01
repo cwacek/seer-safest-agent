@@ -99,6 +99,10 @@ class TorAgent(Agent):
 
         self.beenSetup = False
         self.tor_pid = None
+        directorylinedir = "/proj/%s/exp/%s" % (testbed.project, testbed.experiment)
+        self.dirline_file = "%s/dirfile" % directorylinedir
+        self.dirline_lock = "%s/dirlock" % directorylinedir
+        self.dirline_sem = "%s/dirsem" %directorylinedir
 
     def get_ip_address(self):
         """Get one of our IP addresses that is not in the control net"""
@@ -197,9 +201,7 @@ class TorAgent(Agent):
         
         except Exception as e:
             self.log.error("Command %s failed: %s" % (cmd, str(e)))
-        
-            if die:
-                sys.exit(1)
+            raise
         
         return command_output
 
@@ -222,7 +224,10 @@ class TorAgent(Agent):
             self.tor_pid = None
         elif self.isRunning():
             self.log.info("Stopping Tor")
-            self.simple_run('sudo kill %s' % (self.tor_pid),die=False)
+            try:
+                self.simple_run('sudo kill %s' % (self.tor_pid),die=False)
+            except:
+                pass
             self.tor_pid = None
         else:
             self.log.info("Tor not running; not stopped")
@@ -274,7 +279,13 @@ class TorAgent(Agent):
         self.log.info("In Setup")
 
         self.install_packages(('tor', 'tsocks'))
-        self.simple_run("sudo chown -R root %s" % self.DATA_DIR)
+        try:
+            self.simple_run("sudo rm -rf %s" % self.DATA_DIR)
+            self.simple_run("sudo mkdir -p %s" % self.DATA_DIR)
+            self.simple_run("sudo chown -R root:root %s" % self.DATA_DIR)
+        except Exception as e:
+            self.log.error("Error setting permissions on data directory %s" % self.DATA_DIR)
+            raise
 
         if self.tor_binary:
             copied = False
@@ -300,9 +311,13 @@ class TorAgent(Agent):
 
         if(self.directory and self.directory.myNodeMemberOf()):
             #if a directory, also write the directory config
+            try:
+                import flufl.lock
+            except ImportError:
+                sys.path.append("/opt/local/egg/flufl-lock.egg")
+                import flufl.lock
 
-            from flufl.lock import Lock
-            self.dirline_mutex = Lock(self.dirline_lock)
+            self.dirline_mutex = flufl.lock.Lock(self.dirline_lock)
             address = self.get_ip_address()
 
             self.write_config("torrc-directory.template", self.TOR_RC, ip_address=address,extra_options="")
@@ -478,7 +493,10 @@ class TorAgent(Agent):
         """ Handle the Hup message """
         if self.isRunning():
             self.log.info("Hupping")
-            self.simple_run("sudo kill -s SIGHUP %s" % (self.tor_pid))
+            try:
+                self.simple_run("sudo kill -s SIGHUP %s" % (self.tor_pid))
+            except Exception as e:
+                self.log.error("Failed to HUP: %s" % e)
         else:
             self.log.info("Not currently running, did not HUP")
 
@@ -600,7 +618,11 @@ class TorAgent(Agent):
         # Get the directory server fingerprint
         # tor --quiet --list-fingerprint --DataDirectory /var/lib/tor -f /etc/tor/torrc
         self.log.info("Getting directory server fingerprint")
-        (nodename, fingerprint) = self.simple_run("sudo tor --quiet --list-fingerprint -f %s" % self.TOR_RC).strip().split(' ', 1)
+        try:
+            (nodename, fingerprint) = self.simple_run("sudo tor --quiet --list-fingerprint -f %s" % self.TOR_RC).strip().split(' ', 1)
+        except Exception as e:
+            self.log.error("Failed to obtain fingerprint: %s" % e)
+            raise
         self.log.info("Server fingerprint is: %s" % fingerprint)
    
         # Get the v3ident fingerprint from DATA_DIR/keys/authority_certificate
