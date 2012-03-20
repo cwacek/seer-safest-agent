@@ -2,6 +2,7 @@
 ControlPort 9500
 TestingTorNetwork 1
 DataDirectory /var/lib/tor
+User root
 Address $ip_address
 ShutdownWaitLength 1
 ExitPolicyRejectPrivate 0

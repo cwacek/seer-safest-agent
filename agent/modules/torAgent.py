@@ -73,6 +73,7 @@ class TorAgent(Agent):
     TOR_GENCERT="/usr/bin/tor-gencert"
     TOR_BIN="/usr/sbin/tor"
     TOR_RC="/etc/tor/torrc"
+    CONTROL_DIR="/var/run/tor"
     TOR_LOG='/var/log/tor/log'
     TOR_CACHE={'files':[
                     'cached-certs',
@@ -279,10 +280,14 @@ class TorAgent(Agent):
         self.log.info("In Setup")
 
         self.install_packages(('tor', 'tsocks'))
+        #Make sure nothing is running after the package is started
+        self.stop_tor(force=True)
+
         try:
             self.simple_run("sudo rm -rf %s" % self.DATA_DIR)
             self.simple_run("sudo mkdir -p %s" % self.DATA_DIR)
             self.simple_run("sudo chown -R root:root %s" % self.DATA_DIR)
+            self.simple_run("sudo chown -R root:root %s" % self.CONTROL_DIR)
         except Exception as e:
             self.log.error("Error setting permissions on data directory %s" % self.DATA_DIR)
             raise

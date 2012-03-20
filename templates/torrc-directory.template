@@ -3,6 +3,7 @@ ControlPort 9500
 TestingTorNetwork 1
 DataDirectory /var/lib/tor
 Address $ip_address
+User root
 ShutdownWaitLength 1
 Log notice file /var/log/tor/log
 
