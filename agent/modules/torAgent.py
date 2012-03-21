@@ -35,7 +35,7 @@ from testbed import testbed
 from string import Template
 import apt
 import os
-from subprocess import Popen, call
+from subprocess import Popen, call, check_output
 import time
 from calendar import timegm
 import shutil
@@ -195,13 +195,10 @@ class TorAgent(Agent):
         """Basic function to run a command and log it"""
         try:
             self.log.info("Calling %s" % cmd)
-            (command_output, exitstatus) = pexpect.run(cmd, withexitstatus=1)
-            
-            if exitstatus != 0:
-                raise Exception("Command output: " + command_output, "Exit status: " + str(exitstatus))
-        
-        except Exception as e:
-            self.log.error("Command %s failed: %s" % (cmd, str(e)))
+            command_output = check_output(cmd.split())
+
+        except subprocess.CalledProcessError as e:
+            self.log.error("Command %s failed: [%s] %s" % (cmd, str(e.returncode),str(e.output)))
             raise
         
         return command_output
@@ -227,8 +224,9 @@ class TorAgent(Agent):
             self.log.info("Stopping Tor")
             try:
                 self.simple_run('sudo kill %s' % (self.tor_pid),die=False)
-            except:
-                pass
+            except CalledProcessError:
+                self.log.error("Force-killing Tor")
+                self.stop_tor(force=True)
             self.tor_pid = None
         else:
             self.log.info("Tor not running; not stopped")
