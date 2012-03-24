@@ -621,11 +621,12 @@ class TorAgent(Agent):
             self.log.error("Failed to generate directory server identity key: %s" % str(e))
             sys.exit(1)
 
-        self.log.info("Setting %s to ownership by user debian-tor." % keydir)
+        self.log.info("Setting %s to ownership by user root." % keydir)
         
  
-        # Get the directory server fingerprint
+        #:wGet the directory server fingerprint
         # tor --quiet --list-fingerprint --DataDirectory /var/lib/tor -f /etc/tor/torrc
+        self.write_config("torrc-directory.template", self.TOR_RC, ip_address=address,extra_options="")
         self.log.info("Getting directory server fingerprint")
         try:
             (nodename, fingerprint) = self.simple_run("sudo tor --quiet --list-fingerprint -f %s" % self.TOR_RC).strip().split(' ', 1)
