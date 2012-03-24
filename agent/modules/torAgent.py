@@ -61,6 +61,7 @@ class TorAgent(Agent):
         NodeListVar('clients', None, 'Client', 'Select the node that will be the client'),
         StringVar('template_dir', None, 'TemplateDir', 'Directory for Tor template'),
         StringVar('tor_binary', None, 'Tor Binary', 'The path of a modified Tor binary to use'),
+        StringListVar('env_var_export',None,"Environment Variables","Comma separated list of environment variables to export 'VAR=blahblahblah'"),
         StringVar('save_data_dir',None,"Save Directory", "The path to save logs to if requested"),
         StringListVar('client_config_list',None,"Client Config","Comma separated list of Tor configuration options "),
         StringListVar('relay_config_list',None,"Relay Config","Comma separated list of Tor configuration options for relays"),
@@ -274,10 +275,15 @@ class TorAgent(Agent):
         self.remove_if_exists(self.dirline_lock)
         self.remove_if_exists(self.dirline_sem)
 
+        if self.env_var_export:
+            for env in self.env_var_export:
+                var,val = env.split('=')
+                self.log.info("Adding %s=%s to environment"%(var,val))
+                self.environ[var] = val
         
         self.log.info("In Setup")
 
-        self.install_packages(('tor', 'tsocks'))
+        self.install_packages(('tor', 'tsocks','libgmp3-dev'))
         #Make sure nothing is running after the package is started
         self.stop_tor(force=True)
 
