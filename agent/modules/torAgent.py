@@ -279,7 +279,7 @@ class TorAgent(Agent):
             for env in self.env_var_export:
                 var,val = env.split('=')
                 self.log.info("Adding %s=%s to environment"%(var,val))
-                self.environ[var] = val
+                os.environ[var] = val
         
         self.log.info("In Setup")
 
