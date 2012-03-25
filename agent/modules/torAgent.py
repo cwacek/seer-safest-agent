@@ -35,7 +35,8 @@ from testbed import testbed
 from string import Template
 import apt
 import os
-from subprocess import Popen, call, check_output
+from subprocess import Popen, call
+import subprocess
 import time
 from calendar import timegm
 import shutil
@@ -196,7 +197,7 @@ class TorAgent(Agent):
         """Basic function to run a command and log it"""
         try:
             self.log.info("Calling %s" % cmd)
-            command_output = check_output(cmd.split())
+            command_output = Popen(cmd.split(),stdout=subprocess.PIPE).communicate()[0]
 
         except subprocess.CalledProcessError as e:
             self.log.error("Command %s failed: [%s] %s" % (cmd, str(e.returncode),str(e.output)))
