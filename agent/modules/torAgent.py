@@ -276,11 +276,14 @@ class TorAgent(Agent):
         self.remove_if_exists(self.dirline_lock)
         self.remove_if_exists(self.dirline_sem)
 
-        if self.env_var_export:
+        if self.env_var_export is not None and len(self.env_var_export) > 0:
+            logging.info("Setting provided env variables: %s"%self.env_var_export)
             for env in self.env_var_export:
                 var,val = env.split('=')
                 self.log.info("Adding %s=%s to environment"%(var,val))
                 os.environ[var] = val
+        else: 
+            logging.info("No env variables provided, so none applied")
         
         self.log.info("In Setup")
 
