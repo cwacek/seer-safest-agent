@@ -196,9 +196,8 @@ class TorAgent(Agent):
     def simple_run(self, cmd, die=True):
         """Basic function to run a command and log it"""
         try:
-            self.log.info("Calling %s" % cmd)
+            self.log.info("Calling %s with env [%s]" % (cmd,os.environ))
             command_output = Popen(cmd.split(),stdout=subprocess.PIPE).communicate()[0]
-
         except subprocess.CalledProcessError as e:
             self.log.error("Command %s failed: [%s] %s" % (cmd, str(e.returncode),str(e.output)))
             raise
@@ -215,8 +214,14 @@ class TorAgent(Agent):
 
     def start_tor(self):
         self.log.info("Starting Tor")
-        self.tor_pid = Popen(['sudo',self.TOR_BIN,"-f",self.TOR_RC]).pid 
-        self.log.info("Started Tor with pid: %s" % self.tor_pid)
+        if self.env_var_export is not None and len(self.env_var_export) > 0:
+            cmd = ['sudo']
+            cmd.extend(self.env_var_export)
+            cmd.extend([self.TOR_BIN,"-f",self.TOR_RC])
+        else:
+            cmd = ['sudo',self.TOR_BIN,"-f",self.TOR_RC]
+        self.tor_pid = Popen(cmd).pid 
+        self.log.info("Started Tor with command: %s [pid: %s]" % (cmd,self.tor_pid)
 
     def stop_tor(self,force=False):
         if force:
@@ -276,14 +281,6 @@ class TorAgent(Agent):
         self.remove_if_exists(self.dirline_lock)
         self.remove_if_exists(self.dirline_sem)
 
-        if self.env_var_export is not None and len(self.env_var_export) > 0:
-            logging.info("Setting provided env variables: %s"%self.env_var_export)
-            for env in self.env_var_export:
-                var,val = env.split('=')
-                self.log.info("Adding %s=%s to environment"%(var,val))
-                os.environ[var] = val
-        else: 
-            logging.info("No env variables provided, so none applied")
         
         self.log.info("In Setup")
 
@@ -633,7 +630,14 @@ class TorAgent(Agent):
         self.write_config("torrc-directory.template", self.TOR_RC, ip_address=address,extra_options="")
         self.log.info("Getting directory server fingerprint")
         try:
-            (nodename, fingerprint) = self.simple_run("sudo tor --quiet --list-fingerprint -f %s" % self.TOR_RC).strip().split(' ', 1)
+            if self.env_var_export is not None and len(self.env_var_export) > 0:
+                cmd = 'sudo'
+                for var in self.env_var_export:
+                    cmd += " %s " %var
+                cmd += " %s -f %s " %(self.TOR_BIN,self.TOR_RC)
+            else:
+                cmd = "sudo tor --quiet --list-fingerprint -f %s" % self.TOR_RC
+            (nodename, fingerprint) = self.simple_run(cmd).strip().split(' ', 1)
         except Exception as e:
             self.log.error("Failed to obtain fingerprint: %s" % e)
             raise
