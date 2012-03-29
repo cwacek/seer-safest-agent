@@ -641,8 +641,8 @@ class TorAgent(Agent):
             if self.env_var_export is not None and len(self.env_var_export) > 0:
                 cmd = 'sudo'
                 for var in self.env_var_export:
-                    cmd += " %s " %var
-                cmd += " %s -f %s " %(self.TOR_BIN,self.TOR_RC)
+                    cmd += " %s" %var
+                cmd += " %s --quiet --list-fingerprint -f %s " %(self.TOR_BIN,self.TOR_RC)
             else:
                 cmd = "sudo tor --quiet --list-fingerprint -f %s" % self.TOR_RC
             (nodename, fingerprint) = self.simple_run(cmd).strip().split(' ', 1)
