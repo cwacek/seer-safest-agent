@@ -196,8 +196,16 @@ class TorAgent(Agent):
     def simple_run(self, cmd, die=True):
         """Basic function to run a command and log it"""
         try:
-            self.log.info("Calling %s with env [%s]" % (cmd,os.environ))
-            command_output = Popen(cmd.split(),stdout=subprocess.PIPE).communicate()[0]
+            self.log.info("Calling %s " % (cmd))
+            with open(os.devnull,'w') as stderr_null:
+                p = Popen(cmd.split(),stdout=subprocess.PIPE,stderr=stderr_null)
+                output =  p.communicate()
+                if p.returncode != 0:
+                    self.log.warning("'%s' returned non-zero [%s]"%(cmd,p.returncode))
+                try:
+                    command_output = output[0]
+                except Exception as e:
+                    self.log.error("BAD Error: %s"%e)
         except subprocess.CalledProcessError as e:
             self.log.error("Command %s failed: [%s] %s" % (cmd, str(e.returncode),str(e.output)))
             raise
@@ -220,8 +228,8 @@ class TorAgent(Agent):
             cmd.extend([self.TOR_BIN,"-f",self.TOR_RC])
         else:
             cmd = ['sudo',self.TOR_BIN,"-f",self.TOR_RC]
+        self.log.info("Starting Tor with command: %s [pid: %s]" % (cmd,self.tor_pid))
         self.tor_pid = Popen(cmd).pid 
-        self.log.info("Started Tor with command: %s [pid: %s]" % (cmd,self.tor_pid)
 
     def stop_tor(self,force=False):
         if force:
